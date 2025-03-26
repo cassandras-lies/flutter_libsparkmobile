@@ -1,4 +1,5 @@
 #include "flutter_libsparkmobile.h"
+#include "deps/sparkmobile/src/keys.h"
 #include "utils.h"
 #include "deps/sparkmobile/include/spark.h"
 #include "deps/sparkmobile/src/spark.h"
@@ -8,6 +9,7 @@
 #include "deps/sparkmobile/bitcoin/script.h"  // For CScript.
 
 #include <cstring>
+#include <exception>
 #include <iostream> // Just for printing.
 
 using namespace spark;
@@ -69,11 +71,10 @@ const char* getAddress(unsigned char* keyData, int index, int diversifier, int i
 //}
 
 FFI_PLUGIN_EXPORT
-AggregateCoinData* idAndRecoverCoin(
+AggregateCoinData* idAndRecoverCoinFromFullViewKey(
         const unsigned char* serializedCoin,
         int serializedCoinLength,
-        unsigned char* keyData,
-        int index,
+        spark::FullViewKey* fullViewKey,
         unsigned char* context,
         int contextLength,
         int isTestNet) {
@@ -83,14 +84,11 @@ AggregateCoinData* idAndRecoverCoin(
         std::vector<unsigned char> contextVec(context, context + contextLength);
         coin.setSerialContext(contextVec);
 
-        // Derive the incoming view key from the key data and index.
-        spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
-        spark::FullViewKey fullViewKey(spendKey);
-        spark::IncomingViewKey incomingViewKey(fullViewKey);
+        spark::IncomingViewKey incomingViewKey(*fullViewKey);
 
         spark::IdentifiedCoinData identifiedCoinData = coin.identify(incomingViewKey);
 
-        spark::RecoveredCoinData data = coin.recover(fullViewKey, identifiedCoinData);
+        spark::RecoveredCoinData data = coin.recover(*fullViewKey, identifiedCoinData);
 
         spark::Address address = getAddress(incomingViewKey, identifiedCoinData.i);
         std::string addressString = address.encode(isTestNet ? spark::ADDRESS_NETWORK_TESTNET : spark::ADDRESS_NETWORK_MAINNET);
@@ -128,6 +126,40 @@ AggregateCoinData* idAndRecoverCoin(
 //        std::cerr << "Exception: " << e.what() << std::endl;
         return nullptr;
     }
+}
+
+AggregateCoinData* idAndRecoverCoin(
+        const unsigned char* serializedCoin,
+        int serializedCoinLength,
+        unsigned char* keyData,
+        int index,
+        unsigned char* context,
+        int contextLength,
+        int isTestNet) {
+  try {
+    spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
+    spark::FullViewKey fullViewKey(spendKey);
+    return idAndRecoverCoinFromFullViewKey(serializedCoin, serializedCoinLength, &fullViewKey, context, contextLength, isTestNet);
+  } catch (const std::exception& e) {
+    return nullptr;
+  }
+}
+
+spark::FullViewKey* deserializeSparkFullViewKey(const char* fullSparkViewKeyData, unsigned int fullSparkViewKeyDataSize) {
+  CDataStream keydata(SER_DISK, 0);
+  keydata.write(fullSparkViewKeyData, fullSparkViewKeyDataSize);
+
+  try {
+    spark::FullViewKey* fullViewKey = new spark::FullViewKey();
+    fullViewKey << keydata;
+    return fullViewKey;
+  } catch (const std::exception& e) {
+    return nullptr;
+  }
+}
+
+void deleteSparkFullViewKey(spark::FullViewKey* fullViewKey) {
+  delete fullViewKey;
 }
 
 /*
@@ -182,6 +214,7 @@ CCRecipientList* cCreateSparkMintRecipients(
     // Return the array.
     return data;
 }
+
 
 /*
  * FFI-friendly wrapper for spark::createSparkSpendTransaction.

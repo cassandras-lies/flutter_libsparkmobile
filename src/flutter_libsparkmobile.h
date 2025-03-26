@@ -2,6 +2,7 @@
 #define ORG_FIRO_SPARK_DART_INTERFACE_H
 
 #include <stdint.h>
+#include "deps/sparkmobile/src/keys.h"
 #include "structs.h"
 
 #ifdef __cplusplus
@@ -37,6 +38,22 @@ struct AggregateCoinData* idAndRecoverCoin(
         int contextLength,
         int isTestNet
 );
+
+FFI_PLUGIN_EXPORT
+struct AggregateCoinData* idAndRecoverCoinFromFullViewKey(
+        const unsigned char* serializedCoin,
+        int serializedCoinLength,
+        spark::FullViewKey* fullViewKey,
+        unsigned char* context,
+        int contextLength,
+        int isTestNet);
+
+FFI_PLUGIN_EXPORT
+struct spark::FullViewKey* deserializeSparkFullViewKey(
+    const char* sparkViewKeyData,
+    unsigned int fullSparkViewKeyDataSize
+);
+
 
 /*
  * FFI-friendly wrapper for spark::createSparkMintRecipients.
