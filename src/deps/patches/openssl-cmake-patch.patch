@@ -1,0 +1,25 @@
+From 31afa2f9c874e00a9c275a80cf729943ff93ab2e Mon Sep 17 00:00:00 2001
+From: cassandras-lies <203535133+cassandras-lies@users.noreply.github.com>
+Date: Thu, 10 Apr 2025 14:15:39 +0000
+Subject: [PATCH] Fix compilation with newer CMake.
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e93be8f..deb0c1d 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -23,7 +23,7 @@
+ # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ # SOFTWARE.
+-cmake_minimum_required( VERSION 3.1.0 )
++cmake_minimum_required( VERSION 3.10.0 )
+ set( CMAKE_LEGACY_CYGWIN_WIN32 0 )
+ project( openssl )
+ 
+-- 
+2.39.5 (Apple Git-154)
+
