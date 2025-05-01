@@ -375,6 +375,81 @@ class FlutterLibsparkmobileBindings {
           'native_free');
   late final _native_free =
       _native_freePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  /// FFI-friendly wrapper for a spark::FullViewKey.
+  ///
+  /// FullViewKey: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/coin.h#L66
+  ffi.Pointer<FullViewKey> createFullViewKeyFromData(
+    ffi.Pointer<ffi.UnsignedChar> data,
+    int length,
+  ) {
+    return _createFullViewKeyFromData(
+      data,
+      length,
+    );
+  }
+
+  late final _createFullViewKeyFromDataPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<FullViewKey> Function(
+              ffi.Pointer<ffi.UnsignedChar>, ffi.Int)>>('createFullViewKeyFromData');
+  late final _createFullViewKeyFromData = _createFullViewKeyFromDataPtr.asFunction<
+      ffi.Pointer<FullViewKey> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
+
+  /// FFI-friendly wrapper for spark::idAndRecoverCoinByFullViewKey.
+  ///
+  /// idAndRecoverCoinByFullViewKey: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/coin.h#L66
+  ffi.Pointer<AggregateCoinData> idAndRecoverCoinByFullViewKey(
+    ffi.Pointer<ffi.UnsignedChar> serializedCoin,
+    int serializedCoinLength,
+    ffi.Pointer<FullViewKey> fullViewKey,
+    ffi.Pointer<ffi.UnsignedChar> keyData,
+    int index,
+    int isTestNet,
+  ) {
+    return _idAndRecoverCoinByFullViewKey(
+      serializedCoin,
+      serializedCoinLength,
+      fullViewKey,
+      keyData,
+      index,
+      isTestNet,
+    );
+  }
+
+  late final _idAndRecoverCoinByFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<AggregateCoinData> Function(
+              ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int,
+              ffi.Pointer<FullViewKey>,
+              ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int,
+              ffi.Int)>>('idAndRecoverCoinByFullViewKey');
+  late final _idAndRecoverCoinByFullViewKey = _idAndRecoverCoinByFullViewKeyPtr.asFunction<
+      ffi.Pointer<AggregateCoinData> Function(
+          ffi.Pointer<ffi.UnsignedChar>,
+          int,
+          ffi.Pointer<FullViewKey>,
+          ffi.Pointer<ffi.UnsignedChar>,
+          int,
+          int)>();
+
+  /// FFI-friendly wrapper for spark::deleteFullViewKey.
+  ///
+  /// deleteFullViewKey: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/coin.h#L66
+  void deleteFullViewKey(
+    ffi.Pointer<FullViewKey> fullViewKey,
+  ) {
+    return _deleteFullViewKey(
+      fullViewKey,
+    );
+  }
+
+  late final _deleteFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<ffi.Void Function(ffi.Pointer<FullViewKey>)>>('deleteFullViewKey');
+  late final _deleteFullViewKey =
+      _deleteFullViewKeyPtr.asFunction<void Function(ffi.Pointer<FullViewKey>)>();
 }
 
 /// FFI-friendly wrapper for a spark::Coin.
@@ -734,3 +809,8 @@ final class SparkNameScript extends ffi.Struct {
   @ffi.Int()
   external int size;
 }
+
+/// FFI-friendly wrapper for a spark::FullViewKey.
+///
+/// FullViewKey: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/coin.h#L66
+final class FullViewKey extends ffi.Opaque {}

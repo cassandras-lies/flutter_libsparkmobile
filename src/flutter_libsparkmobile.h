@@ -1,6 +1,7 @@
 #ifndef ORG_FIRO_SPARK_DART_INTERFACE_H
 #define ORG_FIRO_SPARK_DART_INTERFACE_H
 
+#include "deps/sparkmobile/include/spark.h"
 #include <stdint.h>
 #include "structs.h"
 
@@ -19,6 +20,12 @@ extern "C" {
 FFI_PLUGIN_EXPORT
 const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet);
 
+FFI_PLUGIN_EXPORT
+spark::FullViewKey* createFullViewKeyFromData(unsigned char* keyData, int index);
+
+FFI_PLUGIN_EXPORT
+void deleteFullViewKey(spark::FullViewKey* fullViewKey);
+
 /*
  * FFI-friendly wrapper for spark::identifyCoin.
  *
@@ -33,6 +40,16 @@ struct AggregateCoinData* idAndRecoverCoin(
         int serializedCoinLength,
         unsigned char* keyData,
         int index,
+        unsigned char* context,
+        int contextLength,
+        int isTestNet
+);
+
+FFI_PLUGIN_EXPORT
+struct AggregateCoinData* idAndRecoverCoinByFullViewKey(
+        const unsigned char* serializedCoin,
+        int serializedCoinLength,
+        const spark::FullViewKey* fullViewKey,
         unsigned char* context,
         int contextLength,
         int isTestNet
