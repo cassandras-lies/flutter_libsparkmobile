@@ -1,7 +1,6 @@
 #include "flutter_libsparkmobile.h"
 #include "utils.h"
 #include "deps/sparkmobile/include/spark.h"
-#include "deps/sparkmobile/src/spark.h"
 #include "deps/sparkmobile/src/sparkname.h"
 #include "deps/sparkmobile/bitcoin/uint256.h"
 #include "structs.h"
@@ -70,6 +69,24 @@ const char* getAddress(unsigned char* keyData, int index, int diversifier, int i
 //}
 
 FFI_PLUGIN_EXPORT
+spark::FullViewKey* createFullViewKeyFromData(unsigned char* keyData, int index) {
+    try {
+        spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
+        return new spark::FullViewKey(spendKey);
+    } catch (const std::exception& e) {
+        std::cerr << "Exception: " << e.what() << std::endl;
+        return nullptr;
+    }
+}
+
+FFI_PLUGIN_EXPORT
+void deleteFullViewKey(spark::FullViewKey* fullViewKey) {
+    if (fullViewKey) {
+        delete fullViewKey;
+    }
+}
+
+FFI_PLUGIN_EXPORT
 AggregateCoinData* idAndRecoverCoin(
         const unsigned char* serializedCoin,
         int serializedCoinLength,
@@ -79,19 +96,48 @@ AggregateCoinData* idAndRecoverCoin(
         int contextLength,
         int isTestNet) {
     try {
+        // Derive the keys from the key data and index.
+        spark::FullViewKey* fullViewKey = createFullViewKeyFromData(keyData, index);
+        if (!fullViewKey) {
+            return nullptr;
+        }
+
+        AggregateCoinData* result = idAndRecoverCoinByFullViewKey(
+            serializedCoin,
+            serializedCoinLength,
+            fullViewKey,
+            context,
+            contextLength,
+            isTestNet
+        );
+
+        deleteFullViewKey(fullViewKey);
+        return result;
+    } catch (const std::exception& e) {
+        return nullptr;
+    }
+}
+
+FFI_PLUGIN_EXPORT
+AggregateCoinData* idAndRecoverCoinByFullViewKey(
+        const unsigned char* serializedCoin,
+        int serializedCoinLength,
+        const spark::FullViewKey* fullViewKey,
+        unsigned char* context,
+        int contextLength,
+        int isTestNet) {
+    try {
         spark::Coin coin = deserializeCoin(serializedCoin, serializedCoinLength);
 
         std::vector<unsigned char> contextVec(context, context + contextLength);
         coin.setSerialContext(contextVec);
 
-        // Derive the incoming view key from the key data and index.
-        spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
-        spark::FullViewKey fullViewKey(spendKey);
-        spark::IncomingViewKey incomingViewKey(fullViewKey);
+        // Derive the incoming view key from the full view key
+        spark::IncomingViewKey incomingViewKey(*fullViewKey);
 
         spark::IdentifiedCoinData identifiedCoinData = coin.identify(incomingViewKey);
 
-        spark::RecoveredCoinData data = coin.recover(fullViewKey, identifiedCoinData);
+        spark::RecoveredCoinData data = coin.recover(*fullViewKey, identifiedCoinData);
 
         spark::Address address = getAddress(incomingViewKey, identifiedCoinData.i);
         std::string addressString = address.encode(isTestNet ? spark::ADDRESS_NETWORK_TESTNET : spark::ADDRESS_NETWORK_MAINNET);
@@ -126,7 +172,6 @@ AggregateCoinData* idAndRecoverCoin(
 
         return result;
     } catch (const std::exception& e) {
-//        std::cerr << "Exception: " << e.what() << std::endl;
         return nullptr;
     }
 }
@@ -203,8 +248,7 @@ SparkSpendTransactionResult* cCreateSparkSpendTransaction(
     int cover_set_data_allLength,
     struct BlockHashAndId* idAndBlockHashes,
     int idAndBlockHashesLength,
-    unsigned char* txHashSig,
-    int additionalTxSize
+    unsigned char* txHashSig
 ) {
     try {
         // Derive the keys from the key data and index.
@@ -281,7 +325,6 @@ SparkSpendTransactionResult* cCreateSparkSpendTransaction(
             cppCoverSetDataAll,
             cppIdAndBlockHashesAll,
             cppTxHashSig,
-            additionalTxSize,
             cppFee,
             cppSerializedSpend,
             cppOutputScripts,
@@ -412,9 +455,7 @@ SparkFeeResult* estimateSparkFee(
         int subtractFeeFromAmount,
         struct DartSpendCoinData* coins,
         int coinsLength,
-        int privateRecipientsLength,
-        int utxoNum,
-        int additionalTxSize
+        int privateRecipientsLength
 ) {
     try {
         // Derive the keys from the key data and index.
@@ -438,9 +479,7 @@ SparkFeeResult* estimateSparkFee(
                 sendAmount,
                 subtractFeeFromAmount > 0,
                 cppCoins,
-                privateRecipientsLength,
-                utxoNum,
-                additionalTxSize
+                privateRecipientsLength
         );
 
         SparkFeeResult *result = (SparkFeeResult*)malloc(sizeof(SparkFeeResult));
@@ -467,9 +506,7 @@ SparkNameScript* createSparkNameScript(
         unsigned char* spendKeyData,
         int spendKeyIndex,
         int diversifier,
-        int isTestNet,
-        int hashFailSafe,
-        int withoutProof
+        int isTestNet
 ) {
     try {
         // Derive the keys from the key data and index.
@@ -485,41 +522,15 @@ SparkNameScript* createSparkNameScript(
         nameTxData.sparkAddress = getAddress(incomingViewKey, diversifier).encode(isTestNet ? spark::ADDRESS_NETWORK_TESTNET : spark::ADDRESS_NETWORK_MAINNET);
         nameTxData.sparkNameValidityBlocks = static_cast<uint32_t>(sparkNameValidityBlocks);
         nameTxData.additionalInfo = infoString;
-        nameTxData.hashFailsafe = hashFailSafe;
+
+        std::string mHex(scalarMHex);
+        Scalar m;
+        m.SetHex(mHex);
 
         // result
         std::vector<unsigned char> outputScript;
-        if (withoutProof) {
-            outputScript.clear();
-            nameTxData.addressOwnershipProof.clear();
-            CDataStream sparkNameDataStream(SER_NETWORK, PROTOCOL_VERSION);
-            sparkNameDataStream << nameTxData;
-            outputScript.insert(outputScript.end(), sparkNameDataStream.begin(), sparkNameDataStream.end());
-        } else {
-            std::string mHex(scalarMHex);
-            Scalar m;
-            try {
-                m.SetHex(mHex);
-            } catch (const std::exception&) {
-                SparkNameScript* result = (SparkNameScript*)malloc(sizeof(SparkNameScript));
-                if (!result) return nullptr;
 
-                const char* error = "hash fail";
-
-                result->script = nullptr;
-                result->scriptLength = 0;
-                result->size = 0;
-                result->error = (char*)malloc(strlen(error) + 1);
-                if (result->error) {
-                    strcpy(result->error, error);
-                }
-
-                return result;
-            }
-            GetSparkNameScript(nameTxData, m, spendKey, incomingViewKey, outputScript);
-        }
-
-        std::size_t sparkNameTxDataSize = getSparkNameTxDataSize(nameTxData);
+        GetSparkNameScript(nameTxData, m, spendKey, incomingViewKey, outputScript);
 
         SparkNameScript* result = (SparkNameScript*)malloc(sizeof(SparkNameScript));
         if (!result) return nullptr;
@@ -527,7 +538,6 @@ SparkNameScript* createSparkNameScript(
         result->scriptLength = outputScript.size();
         result->error = nullptr;
         result->script = (unsigned char*)malloc(outputScript.size());
-        result->size = sparkNameTxDataSize;
         if (!result->script) {
             free(result);
             return nullptr;
@@ -542,7 +552,6 @@ SparkNameScript* createSparkNameScript(
 
         result->script = nullptr;
         result->scriptLength = 0;
-        result->size = 0;
         result->error = (char*)malloc(strlen(e.what()) + 1);
         if (result->error) {
             strcpy(result->error, e.what());
