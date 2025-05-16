@@ -87,7 +87,8 @@ struct SparkSpendTransactionResult* cCreateSparkSpendTransaction(
         int cover_set_data_allLength,
         struct BlockHashAndId* idAndBlockHashes,
         int idAndBlockHashesLength,
-        unsigned char* txHashSig
+        unsigned char* txHashSig,
+        int additionalTxSize
 );
 
 FFI_PLUGIN_EXPORT
@@ -116,7 +117,9 @@ struct SparkFeeResult* estimateSparkFee(
         int subtractFeeFromAmount,
         struct DartSpendCoinData* coins,
         int coinsLength,
-        int privateRecipientsLength
+        int privateRecipientsLength,
+        int utxoNum,
+        int additionalTxSize
 );
 
 FFI_PLUGIN_EXPORT
@@ -128,7 +131,9 @@ struct SparkNameScript* createSparkNameScript(
         unsigned char* spendKeyData,
         int spendKeyIndex,
         int diversifier,
-        int isTestNet
+        int isTestNet,
+        int hashFailSafe,
+        int withoutProof
 );
 
 FFI_PLUGIN_EXPORT

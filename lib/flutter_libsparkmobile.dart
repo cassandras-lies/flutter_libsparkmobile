@@ -1179,7 +1179,7 @@ abstract final class LibSpark {
   /// Creates a FullViewKey from key data and index.
   ///
   /// Returns a pointer to a FullViewKey that must be freed using [deleteFullViewKey].
-  static Pointer<FullViewKey> createFullViewKeyFromData({
+  static Pointer<spark::FullViewKey> createFullViewKeyFromData({
     required final String privateKeyHex,
     required final int index,
   }) {
