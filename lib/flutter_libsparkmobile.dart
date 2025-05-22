@@ -1175,6 +1175,147 @@ abstract final class LibSpark {
     }
     malloc.free(pointer);
   }
+
+  /// Creates a FullViewKey from key data and index.
+  ///
+  /// Returns a pointer to a FullViewKey that must be freed using [deleteFullViewKey].
+  static Pointer<Void> createFullViewKeyFromData({
+    required final String privateKeyHex,
+    required final int index,
+  }) {
+    DateTime? start;
+    int? id;
+
+    if (enableDebugLogging) {
+      id = _id++;
+      start = DateTime.now();
+      String function = StackTrace.current.functionName;
+      if (enableTraceLogging) {
+        function += "(privateKeyHex=REDACTED, index=$index)";
+      }
+
+      Log.l(
+        enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
+        "BEGIN($id) $function",
+        stackTrace: enableTraceLogging ? StackTrace.current : null,
+      );
+    }
+
+    try {
+      final privateKeyPtr = privateKeyHex.to32BytesFromHex().unsignedCharPointer();
+      final result = _bindings.createFullViewKeyFromData(privateKeyPtr, index);
+      freeDart(privateKeyPtr, debugName: "privateKeyPtr");
+      return result;
+    } finally {
+      if (enableDebugLogging) {
+        Log.l(
+          enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
+          "END($id) ${StackTrace.current.functionName}"
+          " Duration=${DateTime.now().difference(start!)}",
+        );
+      }
+    }
+  }
+
+  /// Identifies and recovers a coin using a FullViewKey.
+  ///
+  /// Returns a [LibSparkCoin] if the coin belongs to us, or null otherwise.
+  static LibSparkCoin? identifyAndRecoverCoinByFullViewKey({
+    required final String serializedCoin,
+    required final Pointer<Void> fullViewKey,
+    required final Uint8List context,
+    final bool isTestNet = false,
+  }) {
+    final b64CoinDecoded = base64Decode(serializedCoin).sublist(0, 244);
+    final serializedCoinPtr = b64CoinDecoded.unsignedCharPointer();
+    final contextPtr = context.unsignedCharPointer();
+
+    final result = _bindings.idAndRecoverCoinByFullViewKey(
+      serializedCoinPtr,
+      b64CoinDecoded.length,
+      fullViewKey,
+      contextPtr,
+      context.length,
+      isTestNet ? 1 : 0,
+    );
+
+    freeDart(serializedCoinPtr, debugName: "serializedCoinPtr");
+    freeDart(contextPtr, debugName: "contextPtr");
+
+    if (result.address == nullptr.address) {
+      return null;
+    }
+
+    final LibSparkCoinType coinType;
+    switch (result.ref.type) {
+      case 0:
+        coinType = LibSparkCoinType.mint;
+        break;
+      case 1:
+        coinType = LibSparkCoinType.spend;
+        break;
+      default:
+        throw Exception("Unknown coin type \"${result.ref.type}\" found.");
+    }
+
+    final ret = LibSparkCoin(
+      type: coinType,
+      nonceHex: result.ref.nonceHex
+          .cast<Utf8>()
+          .toDartString(length: result.ref.nonceHexLength),
+      address: result.ref.address.cast<Utf8>().toDartString(),
+      value: BigInt.from(result.ref.value),
+      memo: result.ref.memo.cast<Utf8>().toDartString(),
+      diversifier: BigInt.from(result.ref.diversifier),
+      encryptedDiversifier: result.ref.encryptedDiversifier
+          .toUint8List(result.ref.encryptedDiversifierLength),
+      serial: result.ref.serial.toUint8List(result.ref.serialLength),
+      lTagHash: result.ref.lTagHash.cast<Utf8>().toDartString(),
+    );
+
+    freeNative(result.ref.address, debugName: "result.ref.address");
+    freeNative(result.ref.memo, debugName: "result.ref.memo");
+    freeNative(result.ref.lTagHash, debugName: "result.ref.lTagHash");
+    freeNative(result.ref.encryptedDiversifier, debugName: "result.ref.encryptedDiversifier");
+    freeNative(result.ref.serial, debugName: "result.ref.serial");
+    freeNative(result.ref.nonceHex, debugName: "result.ref.nonceHex");
+    freeNative(result, debugName: "result");
+
+    return ret;
+  }
+
+  /// Deletes a FullViewKey.
+  static void deleteFullViewKey(Pointer<Void> fullViewKey) {
+    DateTime? start;
+    int? id;
+
+    if (enableDebugLogging) {
+      id = _id++;
+      start = DateTime.now();
+      String function = StackTrace.current.functionName;
+      if (enableTraceLogging) {
+        function += "(fullViewKey=$fullViewKey)";
+      }
+
+      Log.l(
+        enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
+        "BEGIN($id) $function",
+        stackTrace: enableTraceLogging ? StackTrace.current : null,
+      );
+    }
+
+    try {
+      _bindings.deleteFullViewKey(fullViewKey);
+    } finally {
+      if (enableDebugLogging) {
+        Log.l(
+          enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
+          "END($id) ${StackTrace.current.functionName}"
+          " Duration=${DateTime.now().difference(start!)}",
+        );
+      }
+    }
+  }
 }
 
 extension on Pointer<UnsignedChar> {

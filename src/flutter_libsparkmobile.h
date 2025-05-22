@@ -19,6 +19,12 @@ extern "C" {
 FFI_PLUGIN_EXPORT
 const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet);
 
+FFI_PLUGIN_EXPORT
+void* createFullViewKeyFromData(unsigned char* keyData, int index);
+
+FFI_PLUGIN_EXPORT
+void deleteFullViewKey(void* fullViewKey);
+
 /*
  * FFI-friendly wrapper for spark::identifyCoin.
  *
@@ -33,6 +39,16 @@ struct AggregateCoinData* idAndRecoverCoin(
         int serializedCoinLength,
         unsigned char* keyData,
         int index,
+        unsigned char* context,
+        int contextLength,
+        int isTestNet
+);
+
+FFI_PLUGIN_EXPORT
+struct AggregateCoinData* idAndRecoverCoinByFullViewKey(
+        const unsigned char* serializedCoin,
+        int serializedCoinLength,
+        void* fullViewKeyVoid,
         unsigned char* context,
         int contextLength,
         int isTestNet

@@ -49,6 +49,38 @@ class FlutterLibsparkmobileBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
 
+  ffi.Pointer<ffi.Void> createFullViewKeyFromData(
+    ffi.Pointer<ffi.UnsignedChar> keyData,
+    int index,
+  ) {
+    return _createFullViewKeyFromData(
+      keyData,
+      index,
+    );
+  }
+
+  late final _createFullViewKeyFromDataPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int)>>('createFullViewKeyFromData');
+  late final _createFullViewKeyFromData =
+      _createFullViewKeyFromDataPtr.asFunction<
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
+
+  void deleteFullViewKey(
+    ffi.Pointer<ffi.Void> fullViewKey,
+  ) {
+    return _deleteFullViewKey(
+      fullViewKey,
+    );
+  }
+
+  late final _deleteFullViewKeyPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Void>)>>(
+          'deleteFullViewKey');
+  late final _deleteFullViewKey =
+      _deleteFullViewKeyPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
   /// FFI-friendly wrapper for spark::identifyCoin.
   ///
   /// identifyCoin: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/spark.cpp#L400
@@ -94,6 +126,43 @@ class FlutterLibsparkmobileBindings {
           ffi.Pointer<ffi.UnsignedChar>,
           int,
           int)>();
+
+  ffi.Pointer<AggregateCoinData> idAndRecoverCoinByFullViewKey(
+    ffi.Pointer<ffi.UnsignedChar> serializedCoin,
+    int serializedCoinLength,
+    ffi.Pointer<ffi.Void> fullViewKeyVoid,
+    ffi.Pointer<ffi.UnsignedChar> context,
+    int contextLength,
+    int isTestNet,
+  ) {
+    return _idAndRecoverCoinByFullViewKey(
+      serializedCoin,
+      serializedCoinLength,
+      fullViewKeyVoid,
+      context,
+      contextLength,
+      isTestNet,
+    );
+  }
+
+  late final _idAndRecoverCoinByFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<AggregateCoinData> Function(
+              ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int,
+              ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int,
+              ffi.Int)>>('idAndRecoverCoinByFullViewKey');
+  late final _idAndRecoverCoinByFullViewKey =
+      _idAndRecoverCoinByFullViewKeyPtr.asFunction<
+          ffi.Pointer<AggregateCoinData> Function(
+              ffi.Pointer<ffi.UnsignedChar>,
+              int,
+              ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.UnsignedChar>,
+              int,
+              int)>();
 
   /// FFI-friendly wrapper for spark::createSparkMintRecipients.
   ///
