@@ -181,102 +181,17 @@ abstract final class LibSpark {
     required final Uint8List context,
     final bool isTestNet = false,
   }) {
-    DateTime? start;
-    int? id;
+    final fullViewKey = _bindings.getFullViewKeyFromPrivateKeyData(
+      privateKeyHex.to32BytesFromHex().unsignedCharPointer(),
+      index,
+    );
 
-    if (enableDebugLogging) {
-      id = _id++;
-      start = DateTime.now();
-      String function = StackTrace.current.functionName;
-      if (enableTraceLogging) {
-        function += "(serializedCoin=$serializedCoin,"
-            "privateKeyHex=REDACTED,"
-            "index=$index,"
-            "context=$context,"
-            "isTestNet=$isTestNet)";
-      }
-
-      Log.l(
-        enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
-        "BEGIN($id) $function",
-        stackTrace: enableTraceLogging ? StackTrace.current : null,
-      );
-    }
-
-    try {
-      // take sublist as tx hash is also appended here for some reason
-      final b64CoinDecoded = base64Decode(serializedCoin).sublist(0, 244);
-
-      final serializedCoinPtr = b64CoinDecoded.unsignedCharPointer();
-      final privateKeyPtr =
-          privateKeyHex.to32BytesFromHex().unsignedCharPointer();
-      final contextPtr = context.unsignedCharPointer();
-
-      final result = _bindings.idAndRecoverCoin(
-        serializedCoinPtr,
-        b64CoinDecoded.length,
-        privateKeyPtr,
-        index,
-        contextPtr,
-        context.length,
-        isTestNet ? 1 : 0,
-      );
-
-      freeDart(serializedCoinPtr, debugName: "serializedCoinPtr");
-      freeDart(privateKeyPtr, debugName: "privateKeyPtr");
-      freeDart(contextPtr, debugName: "contextPtr");
-      if (result.address == nullptr.address) {
-        return null;
-      }
-
-      final LibSparkCoinType coinType;
-      switch (result.ref.type) {
-        case 0:
-          coinType = LibSparkCoinType.mint;
-          break;
-        case 1:
-          coinType = LibSparkCoinType.mint;
-          break;
-        default:
-          throw Exception("Unknown coin type \"${result.ref.type}\" found.");
-      }
-
-      final ret = LibSparkCoin(
-        type: coinType,
-        nonceHex: result.ref.nonceHex
-            .cast<Utf8>()
-            .toDartString(length: result.ref.nonceHexLength),
-        address: result.ref.address.cast<Utf8>().toDartString(),
-        value: BigInt.from(result.ref.value),
-        memo: result.ref.memo.cast<Utf8>().toDartString(),
-        diversifier: BigInt.from(result.ref.diversifier),
-        encryptedDiversifier: result.ref.encryptedDiversifier
-            .toUint8List(result.ref.encryptedDiversifierLength),
-        serial: result.ref.serial.toUint8List(result.ref.serialLength),
-        lTagHash: result.ref.lTagHash.cast<Utf8>().toDartString(),
-      );
-
-      freeNative(result.ref.address, debugName: "result.ref.address");
-      freeNative(result.ref.memo, debugName: "result.ref.memo");
-      freeNative(result.ref.lTagHash, debugName: "result.ref.lTagHash");
-      freeNative(
-        result.ref.encryptedDiversifier,
-        debugName: "result.ref.encryptedDiversifier",
-      );
-      freeNative(result.ref.nonceHex, debugName: "result.ref.nonceHex");
-      freeNative(result.ref.serial, debugName: "result.ref.serial");
-      freeNative(result, debugName: "result");
-
-      return ret;
-    } finally {
-      if (enableDebugLogging) {
-        Log.l(
-          enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
-          "END($id) ${StackTrace.current.functionName}"
-          " Duration=${DateTime.now().difference(start!)}",
-        );
-      }
-    }
+    return identifyAndRecoverCoinByFullViewKey(
+      serializedCoin: serializedCoin,
+      fullViewKey: fullViewKey,
+      context: context,
+      isTestNet: isTestNet,
+    );
   }
 
   static Uint8List serializeMintContext({required List<(String, int)> inputs}) {
