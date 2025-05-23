@@ -39,8 +39,8 @@ const char* getAddressFromFullViewKey(void* fullViewKeyVoid, int index, int dive
         // Encode the Address object into a string using the appropriate network.
         std::string encodedAddress = address.encode(isTestNet ? spark::ADDRESS_NETWORK_TESTNET : spark::ADDRESS_NETWORK_MAINNET);
 
-        // Allocate memory for the C-style string.
-        char* cstr = new char[encodedAddress.length() + 1];
+        // Allocate memory for the C-style string. This MUST be done with malloc so it can be freed with freeNative().
+        char* cstr = malloc(encodedAddress.length() + 1);
         std::strcpy(cstr, encodedAddress.c_str());
 
         return cstr;

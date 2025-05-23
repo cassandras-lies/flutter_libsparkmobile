@@ -151,6 +151,23 @@ abstract final class LibSpark {
     }
   }
 
+  static Future<String> getAddressFromFullViewKey({
+    required Pointer<Void> fullViewKey,
+    required int index,
+    required int diversifier,
+    bool isTestNet = false,
+  }) async {
+    final addressPointer = _bindings.getAddressFromFullViewKey(
+      fullViewKey,
+      index,
+      diversifier,
+      isTestNet ? 1 : 0,
+    );
+    final addressString = addressPointer.cast<Utf8>().toDartString();
+    freeNative(addressPointer, debugName: "addressPointer");
+    return addressString;
+  }
+
   ///
   /// Check whether the spark coin is ours and if so recover required data
   /// and encapsulate into a single object ([LibSparkCoin]).
