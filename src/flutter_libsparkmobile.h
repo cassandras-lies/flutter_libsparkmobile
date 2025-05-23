@@ -17,13 +17,22 @@ extern "C" {
 #endif
 
 FFI_PLUGIN_EXPORT
-const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet);
+void* getFullViewKeyFromPrivateKeyData(unsigned char* keyData, int index);
 
 FFI_PLUGIN_EXPORT
-void* createFullViewKeyFromData(unsigned char* keyData, int index);
+void* deserializeFullViewKey(unsigned char* keyData, int keyDataLength, int index);
+
+FFI_PLUGIN_EXPORT
+unsigned char* serializeFullViewKey(void* fullViewKeyVoid, int* serializedSize);
 
 FFI_PLUGIN_EXPORT
 void deleteFullViewKey(void* fullViewKey);
+
+FFI_PLUGIN_EXPORT
+const char* getAddressFromPrivateKeyData(unsigned char* keyData, int index, int diversifier, int isTestNet);
+
+FFI_PLUGIN_EXPORT
+const char* getAddressFromFullViewKey(void* fullViewKeyVoid, int index, int diversifier, int isTestNet);
 
 /*
  * FFI-friendly wrapper for spark::identifyCoin.

@@ -198,7 +198,7 @@ std::string Address::encode(const unsigned char network) const {
 
 	std::vector<uint8_t> bit_converted;
 	bech32::convertbits(bit_converted, scrambled, 8, 5, true);
-	
+
 	return bech32::encode(hrp, bit_converted, bech32::Encoding::BECH32M);
 }
 
@@ -237,7 +237,7 @@ unsigned char Address::decode(const std::string& str) {
 
 	std::vector<unsigned char> component(raw.begin() + AES_BLOCKSIZE, raw.begin() + AES_BLOCKSIZE + GroupElement::serialize_size);
 	this->Q1.deserialize(component.data());
-	
+
 	component = std::vector<unsigned char>(raw.begin() + AES_BLOCKSIZE + GroupElement::serialize_size, raw.end());
 	this->Q2.deserialize(component.data());
 

@@ -1179,42 +1179,15 @@ abstract final class LibSpark {
   /// Creates a FullViewKey from key data and index.
   ///
   /// Returns a pointer to a FullViewKey that must be freed using [deleteFullViewKey].
-  static Pointer<Void> createFullViewKeyFromData({
-    required final String privateKeyHex,
+  static Pointer<Void> deserializeFullViewKey({
+    required final String fullViewKeyHex,
     required final int index,
   }) {
-    DateTime? start;
-    int? id;
-
-    if (enableDebugLogging) {
-      id = _id++;
-      start = DateTime.now();
-      String function = StackTrace.current.functionName;
-      if (enableTraceLogging) {
-        function += "(privateKeyHex=REDACTED, index=$index)";
-      }
-
-      Log.l(
-        enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
-        "BEGIN($id) $function",
-        stackTrace: enableTraceLogging ? StackTrace.current : null,
-      );
-    }
-
-    try {
-      final privateKeyPtr = privateKeyHex.to32BytesFromHex().unsignedCharPointer();
-      final result = _bindings.createFullViewKeyFromData(privateKeyPtr, index);
-      freeDart(privateKeyPtr, debugName: "privateKeyPtr");
-      return result;
-    } finally {
-      if (enableDebugLogging) {
-        Log.l(
-          enableTraceLogging ? LoggingLevel.trace : LoggingLevel.debug,
-          "END($id) ${StackTrace.current.functionName}"
-          " Duration=${DateTime.now().difference(start!)}",
-        );
-      }
-    }
+    // This is *not* converting to int32s, and it supports lengths above 32 bytes.
+    final fullViewKeyData = fullViewKeyHex.to32BytesFromHex();
+    final fullViewKeyDataPtr = fullViewKeyData.unsignedCharPointer();
+    final result = _bindings.deserializeFullViewKey(fullViewKeyDataPtr, fullViewKeyData.length, index);
+    return result;
   }
 
   /// Identifies and recovers a coin using a FullViewKey.

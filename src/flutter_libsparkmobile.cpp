@@ -6,7 +6,7 @@
 #include "structs.h"
 #include "transaction.h"
 #include "deps/sparkmobile/bitcoin/script.h"  // For CScript.
-
+#include "deps/sparkmobile/bitcoin/serialize.h"
 #include <cstring>
 #include <iostream> // Just for printing.
 
@@ -22,13 +22,18 @@ extern "C" {
  * getAddress: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/spark.cpp#L388
  */
 FFI_PLUGIN_EXPORT
-const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet) {
-    try {
-        // Use the hex string directly to create the SpendKey.
-        spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
+const char* getAddressFromPrivateKeyData(unsigned char* keyData, int index, int diversifier, int isTestNet) {
+    // Use the hex string directly to create the SpendKey.
+    spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
 
-        spark::FullViewKey fullViewKey(spendKey);
-        spark::IncomingViewKey incomingViewKey(fullViewKey);
+    spark::FullViewKey fullViewKey(spendKey);
+    return getAddressFromFullViewKey(reinterpret_cast<void*>(&fullViewKey), index, diversifier, isTestNet);
+}
+
+FFI_PLUGIN_EXPORT
+const char* getAddressFromFullViewKey(void* fullViewKeyVoid, int index, int diversifier, int isTestNet) {
+    try {
+        spark::IncomingViewKey incomingViewKey(*static_cast<spark::FullViewKey*>(fullViewKeyVoid));
         spark::Address address(incomingViewKey, static_cast<uint64_t>(diversifier));
 
         // Encode the Address object into a string using the appropriate network.
@@ -69,35 +74,64 @@ const char* getAddress(unsigned char* keyData, int index, int diversifier, int i
 //}
 
 FFI_PLUGIN_EXPORT
-void* createFullViewKeyFromData(unsigned char* keyData, int index) {
-    try {
-        spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
-        return static_cast<void*>(new spark::FullViewKey(spendKey));
-    } catch (const std::exception& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return nullptr;
-    }
+void* getFullViewKeyFromPrivateKey(unsigned char* keyData, int index) {
+    spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
+    spark::FullViewKey* fullViewKey = new spark::FullViewKey(spendKey);
+
+    return static_cast<void*>(fullViewKey);
+}
+
+FFI_PLUGIN_EXPORT
+void* deserializeFullViewKey(unsigned char* keyData, int keyDataLength, int index) {
+    // CDataStream expects a char* for the constructor, but Spark uses unsigned char*.
+    char* keyDataChar = reinterpret_cast<char*>(keyData);
+
+    spark::FullViewKey* fullViewKey = new spark::FullViewKey();
+
+    size_t serializeSize = GetSerializeSize(*fullViewKey, SER_NETWORK, PROTOCOL_VERSION);
+    assert(serializeSize == keyDataLength);
+
+    CDataStream s(keyDataChar, keyDataChar + serializeSize, SER_NETWORK, PROTOCOL_VERSION);
+    s >> *fullViewKey;
+
+    return static_cast<void*>(fullViewKey);
+}
+
+FFI_PLUGIN_EXPORT
+unsigned char* serializeFullViewKey(void* fullViewKeyVoid, int* serializedSize) {
+    spark::FullViewKey* fullViewKey = static_cast<spark::FullViewKey*>(fullViewKeyVoid);
+
+    // Serialize the FullViewKey into a CDataStream
+    CDataStream s(SER_NETWORK, PROTOCOL_VERSION);
+    s << *fullViewKey;
+
+    // Allocate a buffer for the serialized data
+    *serializedSize = s.size();
+    unsigned char* result = new unsigned char[*serializedSize];
+
+    // Copy the serialized data into the buffer
+    memcpy(result, s.data(), *serializedSize);
+
+    return result;
 }
 
 FFI_PLUGIN_EXPORT
 void deleteFullViewKey(void* fullViewKey) {
-    if (fullViewKey) {
-        delete static_cast<spark::FullViewKey*>(fullViewKey);
-    }
+    delete static_cast<spark::FullViewKey*>(fullViewKey);
 }
 
 FFI_PLUGIN_EXPORT
 AggregateCoinData* idAndRecoverCoin(
         const unsigned char* serializedCoin,
         int serializedCoinLength,
-        unsigned char* keyData,
+        unsigned char* fullViewKeyData,
         int index,
         unsigned char* context,
         int contextLength,
         int isTestNet) {
     try {
         // Derive the keys from the key data and index.
-        void* fullViewKeyVoid = createFullViewKeyFromData(keyData, index);
+        void* fullViewKeyVoid = deserializeFullViewKey(fullViewKeyData, index);
         spark::FullViewKey* fullViewKey = static_cast<spark::FullViewKey*>(fullViewKeyVoid);
         if (!fullViewKey) {
             return nullptr;

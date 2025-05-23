@@ -49,23 +49,22 @@ class FlutterLibsparkmobileBindings {
       ffi.Pointer<ffi.Char> Function(
           ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
 
-  ffi.Pointer<ffi.Void> createFullViewKeyFromData(
+  ffi.Pointer<ffi.Void> deserializeFullViewKey(
     ffi.Pointer<ffi.UnsignedChar> keyData,
     int index,
   ) {
-    return _createFullViewKeyFromData(
+    return _deserializeFullViewKey(
       keyData,
       index,
     );
   }
 
-  late final _createFullViewKeyFromDataPtr = _lookup<
+  late final _deserializeFullViewKeyPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
-              ffi.Int)>>('createFullViewKeyFromData');
-  late final _createFullViewKeyFromData =
-      _createFullViewKeyFromDataPtr.asFunction<
-          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
+              ffi.Int)>>('deserializeFullViewKey');
+  late final _deserializeFullViewKey = _deserializeFullViewKeyPtr.asFunction<
+      ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
 
   void deleteFullViewKey(
     ffi.Pointer<ffi.Void> fullViewKey,
@@ -444,6 +443,42 @@ class FlutterLibsparkmobileBindings {
           'native_free');
   late final _native_free =
       _native_freePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Void> getFullViewKeyFromPrivateKey(
+    ffi.Pointer<ffi.UnsignedChar> keyData,
+    int index,
+  ) {
+    return _getFullViewKeyFromPrivateKey(
+      keyData,
+      index,
+    );
+  }
+
+  late final _getFullViewKeyFromPrivateKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int)>>('getFullViewKeyFromPrivateKey');
+  late final _getFullViewKeyFromPrivateKey =
+      _getFullViewKeyFromPrivateKeyPtr.asFunction<
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
+
+  ffi.Pointer<ffi.UnsignedChar> serializeFullViewKey(
+    ffi.Pointer<ffi.Void> fullViewKeyVoid,
+    ffi.Pointer<ffi.Int> serializedSize,
+  ) {
+    return _serializeFullViewKey(
+      fullViewKeyVoid,
+      serializedSize,
+    );
+  }
+
+  late final _serializeFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.UnsignedChar> Function(ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.Int>)>>('serializeFullViewKey');
+  late final _serializeFullViewKey = _serializeFullViewKeyPtr.asFunction<
+      ffi.Pointer<ffi.UnsignedChar> Function(
+          ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Int>)>();
 }
 
 /// FFI-friendly wrapper for a spark::Coin.
