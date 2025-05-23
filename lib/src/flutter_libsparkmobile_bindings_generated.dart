@@ -27,44 +27,61 @@ class FlutterLibsparkmobileBindings {
           lookup)
       : _lookup = lookup;
 
-  ffi.Pointer<ffi.Char> getAddress(
+  ffi.Pointer<ffi.Void> getFullViewKeyFromPrivateKeyData(
     ffi.Pointer<ffi.UnsignedChar> keyData,
     int index,
-    int diversifier,
-    int isTestNet,
   ) {
-    return _getAddress(
+    return _getFullViewKeyFromPrivateKeyData(
       keyData,
       index,
-      diversifier,
-      isTestNet,
     );
   }
 
-  late final _getAddressPtr = _lookup<
+  late final _getFullViewKeyFromPrivateKeyDataPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.UnsignedChar>, ffi.Int,
-              ffi.Int, ffi.Int)>>('getAddress');
-  late final _getAddress = _getAddressPtr.asFunction<
-      ffi.Pointer<ffi.Char> Function(
-          ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
+              ffi.Int)>>('getFullViewKeyFromPrivateKeyData');
+  late final _getFullViewKeyFromPrivateKeyData =
+      _getFullViewKeyFromPrivateKeyDataPtr.asFunction<
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
 
   ffi.Pointer<ffi.Void> deserializeFullViewKey(
     ffi.Pointer<ffi.UnsignedChar> keyData,
+    int keyDataLength,
     int index,
   ) {
     return _deserializeFullViewKey(
       keyData,
+      keyDataLength,
       index,
     );
   }
 
   late final _deserializeFullViewKeyPtr = _lookup<
       ffi.NativeFunction<
-          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
+          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, ffi.Int,
               ffi.Int)>>('deserializeFullViewKey');
   late final _deserializeFullViewKey = _deserializeFullViewKeyPtr.asFunction<
-      ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
+      ffi.Pointer<ffi.Void> Function(
+          ffi.Pointer<ffi.UnsignedChar>, int, int)>();
+
+  ffi.Pointer<ffi.UnsignedChar> serializeFullViewKey(
+    ffi.Pointer<ffi.Void> fullViewKeyVoid,
+    ffi.Pointer<ffi.Int> serializedSize,
+  ) {
+    return _serializeFullViewKey(
+      fullViewKeyVoid,
+      serializedSize,
+    );
+  }
+
+  late final _serializeFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.UnsignedChar> Function(ffi.Pointer<ffi.Void>,
+              ffi.Pointer<ffi.Int>)>>('serializeFullViewKey');
+  late final _serializeFullViewKey = _serializeFullViewKeyPtr.asFunction<
+      ffi.Pointer<ffi.UnsignedChar> Function(
+          ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Int>)>();
 
   void deleteFullViewKey(
     ffi.Pointer<ffi.Void> fullViewKey,
@@ -79,6 +96,52 @@ class FlutterLibsparkmobileBindings {
           'deleteFullViewKey');
   late final _deleteFullViewKey =
       _deleteFullViewKeyPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
+
+  ffi.Pointer<ffi.Char> getAddressFromPrivateKeyData(
+    ffi.Pointer<ffi.UnsignedChar> keyData,
+    int index,
+    int diversifier,
+    int isTestNet,
+  ) {
+    return _getAddressFromPrivateKeyData(
+      keyData,
+      index,
+      diversifier,
+      isTestNet,
+    );
+  }
+
+  late final _getAddressFromPrivateKeyDataPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.UnsignedChar>, ffi.Int,
+              ffi.Int, ffi.Int)>>('getAddressFromPrivateKeyData');
+  late final _getAddressFromPrivateKeyData =
+      _getAddressFromPrivateKeyDataPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
+
+  ffi.Pointer<ffi.Char> getAddressFromFullViewKey(
+    ffi.Pointer<ffi.Void> fullViewKeyVoid,
+    int index,
+    int diversifier,
+    int isTestNet,
+  ) {
+    return _getAddressFromFullViewKey(
+      fullViewKeyVoid,
+      index,
+      diversifier,
+      isTestNet,
+    );
+  }
+
+  late final _getAddressFromFullViewKeyPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.Void>, ffi.Int,
+              ffi.Int, ffi.Int)>>('getAddressFromFullViewKey');
+  late final _getAddressFromFullViewKey =
+      _getAddressFromFullViewKeyPtr.asFunction<
+          ffi.Pointer<ffi.Char> Function(
+              ffi.Pointer<ffi.Void>, int, int, int)>();
 
   /// FFI-friendly wrapper for spark::identifyCoin.
   ///
@@ -443,42 +506,6 @@ class FlutterLibsparkmobileBindings {
           'native_free');
   late final _native_free =
       _native_freePtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
-
-  ffi.Pointer<ffi.Void> getFullViewKeyFromPrivateKey(
-    ffi.Pointer<ffi.UnsignedChar> keyData,
-    int index,
-  ) {
-    return _getFullViewKeyFromPrivateKey(
-      keyData,
-      index,
-    );
-  }
-
-  late final _getFullViewKeyFromPrivateKeyPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>,
-              ffi.Int)>>('getFullViewKeyFromPrivateKey');
-  late final _getFullViewKeyFromPrivateKey =
-      _getFullViewKeyFromPrivateKeyPtr.asFunction<
-          ffi.Pointer<ffi.Void> Function(ffi.Pointer<ffi.UnsignedChar>, int)>();
-
-  ffi.Pointer<ffi.UnsignedChar> serializeFullViewKey(
-    ffi.Pointer<ffi.Void> fullViewKeyVoid,
-    ffi.Pointer<ffi.Int> serializedSize,
-  ) {
-    return _serializeFullViewKey(
-      fullViewKeyVoid,
-      serializedSize,
-    );
-  }
-
-  late final _serializeFullViewKeyPtr = _lookup<
-      ffi.NativeFunction<
-          ffi.Pointer<ffi.UnsignedChar> Function(ffi.Pointer<ffi.Void>,
-              ffi.Pointer<ffi.Int>)>>('serializeFullViewKey');
-  late final _serializeFullViewKey = _serializeFullViewKeyPtr.asFunction<
-      ffi.Pointer<ffi.UnsignedChar> Function(
-          ffi.Pointer<ffi.Void>, ffi.Pointer<ffi.Int>)>();
 }
 
 /// FFI-friendly wrapper for a spark::Coin.
