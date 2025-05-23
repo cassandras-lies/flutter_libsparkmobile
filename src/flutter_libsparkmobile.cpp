@@ -74,7 +74,7 @@ const char* getAddressFromFullViewKey(void* fullViewKeyVoid, int index, int dive
 //}
 
 FFI_PLUGIN_EXPORT
-void* getFullViewKeyFromPrivateKey(unsigned char* keyData, int index) {
+void* getFullViewKeyFromPrivateKeyData(unsigned char* keyData, int index) {
     spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
     spark::FullViewKey* fullViewKey = new spark::FullViewKey(spendKey);
 
