@@ -124,33 +124,32 @@ FFI_PLUGIN_EXPORT
 AggregateCoinData* idAndRecoverCoin(
         const unsigned char* serializedCoin,
         int serializedCoinLength,
-        unsigned char* fullViewKeyData,
+        unsigned char* privateKeyData,
         int index,
         unsigned char* context,
         int contextLength,
         int isTestNet) {
+    // Derive the keys from the key data and index.
+    void* fullViewKeyVoid = nullptr;
     try {
-        // Derive the keys from the key data and index.
-        void* fullViewKeyVoid = deserializeFullViewKey(fullViewKeyData, index);
-        spark::FullViewKey* fullViewKey = static_cast<spark::FullViewKey*>(fullViewKeyVoid);
-        if (!fullViewKey) {
-            return nullptr;
-        }
-
-        AggregateCoinData* result = idAndRecoverCoinByFullViewKey(
-            serializedCoin,
-            serializedCoinLength,
-            fullViewKeyVoid,
-            context,
-            contextLength,
-            isTestNet
-        );
-
-        deleteFullViewKey(fullViewKeyVoid);
-        return result;
+        fullViewKeyVoid = getFullViewKeyFromPrivateKeyData(privateKeyData, index);
     } catch (const std::exception& e) {
         return nullptr;
     }
+
+    spark::FullViewKey* fullViewKey = static_cast<spark::FullViewKey*>(fullViewKeyVoid);
+
+    AggregateCoinData* result = idAndRecoverCoinByFullViewKey(
+        serializedCoin,
+        serializedCoinLength,
+        fullViewKeyVoid,
+        context,
+        contextLength,
+        isTestNet
+    );
+
+    deleteFullViewKey(fullViewKeyVoid);
+    return result;
 }
 
 FFI_PLUGIN_EXPORT
