@@ -29,7 +29,7 @@ FFI_PLUGIN_EXPORT
 void deleteFullViewKey(void* fullViewKey);
 
 FFI_PLUGIN_EXPORT
-const char* getAddressFromPrivateKeyData(unsigned char* keyData, int index, int diversifier, int isTestNet);
+const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet);
 
 FFI_PLUGIN_EXPORT
 const char* getAddressFromFullViewKey(void* fullViewKeyVoid, int index, int diversifier, int isTestNet);

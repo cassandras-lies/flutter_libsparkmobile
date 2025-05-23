@@ -97,13 +97,13 @@ class FlutterLibsparkmobileBindings {
   late final _deleteFullViewKey =
       _deleteFullViewKeyPtr.asFunction<void Function(ffi.Pointer<ffi.Void>)>();
 
-  ffi.Pointer<ffi.Char> getAddressFromPrivateKeyData(
+  ffi.Pointer<ffi.Char> getAddress(
     ffi.Pointer<ffi.UnsignedChar> keyData,
     int index,
     int diversifier,
     int isTestNet,
   ) {
-    return _getAddressFromPrivateKeyData(
+    return _getAddress(
       keyData,
       index,
       diversifier,
@@ -111,14 +111,13 @@ class FlutterLibsparkmobileBindings {
     );
   }
 
-  late final _getAddressFromPrivateKeyDataPtr = _lookup<
+  late final _getAddressPtr = _lookup<
       ffi.NativeFunction<
           ffi.Pointer<ffi.Char> Function(ffi.Pointer<ffi.UnsignedChar>, ffi.Int,
-              ffi.Int, ffi.Int)>>('getAddressFromPrivateKeyData');
-  late final _getAddressFromPrivateKeyData =
-      _getAddressFromPrivateKeyDataPtr.asFunction<
-          ffi.Pointer<ffi.Char> Function(
-              ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
+              ffi.Int, ffi.Int)>>('getAddress');
+  late final _getAddress = _getAddressPtr.asFunction<
+      ffi.Pointer<ffi.Char> Function(
+          ffi.Pointer<ffi.UnsignedChar>, int, int, int)>();
 
   ffi.Pointer<ffi.Char> getAddressFromFullViewKey(
     ffi.Pointer<ffi.Void> fullViewKeyVoid,

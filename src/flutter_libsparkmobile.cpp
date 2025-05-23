@@ -22,7 +22,7 @@ extern "C" {
  * getAddress: https://github.com/firoorg/sparkmobile/blob/8bf17cd3deba6c3b0d10e89282e02936d7e71cdd/src/spark.cpp#L388
  */
 FFI_PLUGIN_EXPORT
-const char* getAddressFromPrivateKeyData(unsigned char* keyData, int index, int diversifier, int isTestNet) {
+const char* getAddress(unsigned char* keyData, int index, int diversifier, int isTestNet) {
     // Use the hex string directly to create the SpendKey.
     spark::SpendKey spendKey = createSpendKeyFromData(keyData, index);
 
